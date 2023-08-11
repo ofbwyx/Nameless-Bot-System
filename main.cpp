@@ -1,4 +1,4 @@
-#define RELEASE // 是否正式发布
+//#define RELEASE // 是否正式发布
 
 #include <MiraiCP.hpp>
 #include <fstream>
@@ -10,7 +10,7 @@ using namespace std;
 const PluginConfig CPPPlugin::config{
 		"com.github.ofbwyx.hi",
 		"Hi",
-		"3.0",
+		"3.1 (preview)",
 		"ofbwyx",
 		"Bot System",
 		"2023.8"
@@ -81,8 +81,9 @@ void DayF(string id) {
 	SaveFile();
 }
 
-// python
+// python 从指定网页获取信息，返回 json
 json python(string url) {
+	system("del .\\Temp.ofbwyx"); // 防止上次获取失败导致文件未删除，引发持续错误（效果未知）
 	f_write.open("Temp.ofbwyx");
 	f_write << url;
 	f_write.close();
@@ -96,6 +97,20 @@ json python(string url) {
 	return rsp;
 }
 
+// fr24 返回消息处理
+string fr24(json ttop) {
+	string tmp[11];
+	int cnt = 0;
+	for (auto i : ttop) {
+		if (i.is_null())i = "null";
+		else if (i.is_number())i = to_string(i);
+		tmp[cnt++] = (string)i;
+		//Logger::logger.info(to_string(cnt-1)+" "+tmp[cnt - 1]);
+	}
+	return("\n关注人数 " + tmp[1] + "\n呼号 " + tmp[0] + "\n航班号 " + tmp[2] + "\n应答机 " + tmp[7] + "\n飞机型号 " + tmp[10] + "\n从 " + tmp[4] + " " + tmp[5] + "\n到 " + tmp[8] + " " + tmp[9] + "\n数据来源：https://www.flightradar24.com");
+}
+
+// 检查是否为管理
 bool ckAdmin(unsigned long long id) {
 	for (int i = 0; i < set["Admin"].size(); i++) if ((unsigned long long)set["Admin"][i] == id)return false;
 	return true;
@@ -105,7 +120,7 @@ namespace Command {
 	// 帮助
 	class help :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "help",{"帮助","?","？"},"","BS 帮助",1 }; }
+		IRawCommand::Config config() override { return { "help",{"帮助","?","？"},"","BS 帮助",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return; // 禁止匿名群成员使用
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -128,7 +143,7 @@ namespace Command {
 	// 签到
 	class sign :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "sign",{"签到"},"","BS 签到",1 }; }
+		IRawCommand::Config config() override { return { "sign",{"签到"},"","BS 签到",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -153,7 +168,7 @@ namespace Command {
 	// 抽奖
 	class draw :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "draw",{"抽奖"},"","BS 抽奖",1 }; }
+		IRawCommand::Config config() override { return { "draw",{"抽奖"},"","BS 抽奖",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -182,7 +197,7 @@ namespace Command {
 	// 信息
 	class info :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "info",{"信息"},"","BS 信息",1 }; }
+		IRawCommand::Config config() override { return { "info",{"信息"},"","BS 信息",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -197,7 +212,7 @@ namespace Command {
 	// 赌一赌
 	class bit :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "bit",{},"","BS 赌一赌",1 }; }
+		IRawCommand::Config config() override { return { "bit",{},"","BS 赌一赌",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -229,7 +244,7 @@ namespace Command {
 	// 转账
 	class pay :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "pay",{"转账"},"","BS 转账",1 }; }
+		IRawCommand::Config config() override { return { "pay",{"转账"},"","BS 转账",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -266,7 +281,7 @@ namespace Command {
 	// 排行榜 
 	class rank :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "rank",{"排行榜"},"","BS 排行榜",1 }; }
+		IRawCommand::Config config() override { return { "rank",{"排行榜"},"","BS 排行榜",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -300,7 +315,7 @@ namespace Command {
 	// 丢漂流瓶
 	class dthrow :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "throw",{"丢漂流瓶","扔漂流瓶"},"","BS 丢漂流瓶",1}; }
+		IRawCommand::Config config() override { return { "throw",{"丢漂流瓶","扔漂流瓶"},"","BS 丢漂流瓶",0}; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -323,7 +338,7 @@ namespace Command {
 	// 捡漂流瓶 
 	class dpick :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "pick",{"捡漂流瓶"},"","BS 捡漂流瓶",1 }; }
+		IRawCommand::Config config() override { return { "pick",{"捡漂流瓶"},"","BS 捡漂流瓶",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -345,7 +360,7 @@ namespace Command {
 	// 头衔
 	class myhonor :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "honor",{"头衔"},"","BS 头衔",1 }; }
+		IRawCommand::Config config() override { return { "honor",{"头衔"},"","BS 头衔",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -374,7 +389,7 @@ namespace Command {
 	// 天气
 	class weather :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "weather",{"天气"},"","BS 天气",1 }; }
+		IRawCommand::Config config() override { return { "weather",{"天气"},"","BS 天气",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -405,7 +420,7 @@ namespace Command {
 	// 管理 加载
 	class load :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "load",{"加载"},"","BS 管理 加载",1 }; }
+		IRawCommand::Config config() override { return { "load",{"加载"},"","BS 管理 加载",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -424,7 +439,7 @@ namespace Command {
 	// 管理 保存 
 	class save :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "save",{"保存"},"","BS 管理 保存",1 }; }
+		IRawCommand::Config config() override { return { "save",{"保存"},"","BS 管理 保存",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -443,7 +458,7 @@ namespace Command {
 	// 管理 发布 
 	class publish :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "publish",{"发布"},"","BS 管理 发布",1 }; }
+		IRawCommand::Config config() override { return { "publish",{"发布"},"","BS 管理 发布",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -465,7 +480,7 @@ namespace Command {
 	// 管理 给予
 	class give :public IRawCommand {
 	public:
-		IRawCommand::Config config() override { return { "give",{"给予"},"","BS 管理 给予",1 }; }
+		IRawCommand::Config config() override { return { "give",{"给予"},"","BS 管理 给予",0 }; }
 		void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 			if (c.get()->toJson()["id"] == 80000000)return;
 			Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -505,7 +520,7 @@ namespace Command {
 	/*
 		class Command :public IRawCommand {
 		public:
-			IRawCommand::Config config() override { return { "Command",{"指令"},"","BS 指令",1 }; }
+			IRawCommand::Config config() override { return { "Command",{"指令"},"","BS 指令",0 }; }
 			void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
 				if (c.get()->toJson()["id"] == 80000000)return;
 				Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
@@ -516,19 +531,6 @@ namespace Command {
 			Command() = default;
 		};
 	*/
-
-	//// 测试
-	//class Test :public IRawCommand {
-	//public:
-	//	IRawCommand::Config config() override { return { "Test",{"test"}}; }
-	//	void onCommand(std::shared_ptr<Contact> c, const Bot& b, const MessageChain& a) override {
-	//		//if (c.get()->toJson()["id"] == 80000000)return;
-	//		//Group g(c.get()->toJson()["groupId"], c.get()->toJson()["botId"]);
-	//		//g.sendMessage("咕");
-	//		Logger::logger.warning("yee");
-	//	}
-	//	Test() = default;
-	//};
 
 	// 正式发布时覆盖 Mirai 管理指令
 #ifdef RELEASE
@@ -559,9 +561,7 @@ public:
 		CommandManager::registerCommand<Command::disP6>();
 #endif
 
-		
-		//Command::help h;
-		
+		// 注册命令
 		CommandManager::registerCommand<Command::help>();
 		CommandManager::registerCommand<Command::sign>();
 		CommandManager::registerCommand<Command::draw>();
@@ -585,7 +585,7 @@ public:
 					if ((i == 0 && set["NudgeG"][0] == -1) || set["NudgeG"][i] == e.subject.get()->id()) { // 找到开启了戳一戳的群
 						Group g(e.subject.get()->id(), e.subject.get()->botid());
 						int rd = myrand() % (set["NudgeR"].size()+1);
-						if (rd == set["NudgeR"].size()) Member(e.from.get()->id(), e.subject.get()->id(), e.subject.get()->botid()).sendNudge(); // 戳回去
+						if (rd == set["NudgeR"].size()) Member(e.from.get()->id(), e.subject.get()->id(), e.subject.get()->botid()).sendNudge(); // 戳回去（目前 Android_pad 下不可用）
 						else {
 							MessageChain msg = msg.deserializationFromMiraiCode(set["NudgeR"][rd]);
 							g.sendMessage(msg); // 发送消息
@@ -604,12 +604,12 @@ public:
 			schedule(1800, e.msg); // 下一轮计时
 
 			json rsp = python("https://www.flightradar24.com/flights/most-tracked"); // Fr24 爬取
-			Logger::logger.info(rsp);
+			//Logger::logger.info(rsp);
 
 			if ((!rsp["data"][0]["squawk"].is_null() && rsp["data"][0]["squawk"] != "7600") || (int)rsp["data"][0]["clicks"] >= 10000)
 				for (int i = 0; i < set["Fr24G"].size(); i++) {
-					if ((int)rsp["data"][0]["clicks"] >= 10000)Group(set["Fr24G"][i], atoll(e.msg.c_str())).sendMessage("有超过一万人正在关注的航班：\n" + rsp["data"][0].dump() + "\n数据来源：https://www.flightradar24.com");
-					else Group(set["Fr24G"][i], atoll(e.msg.c_str())).sendMessage("可能出现异常的航班：\n" + rsp["data"][0].dump() + "\n数据来源：https://www.flightradar24.com");
+					if ((int)rsp["data"][0]["clicks"] >= 10000)Group(set["Fr24G"][i], atoll(e.msg.c_str())).sendMessage("有超过一万人正在关注的航班" + fr24(rsp["data"][0]));
+					else Group(set["Fr24G"][i], atoll(e.msg.c_str())).sendMessage("可能出现异常的航班" + fr24(rsp["data"][0]));
 				}
 		});
 
@@ -617,7 +617,7 @@ public:
 
 			if (e.message.toMiraiCode() == (string)"Fr24" || e.message.toMiraiCode() == (string)"fr24") {
 				json rsp = python("https://www.flightradar24.com/flights/most-tracked"); // Fr24 爬取
-				e.group.sendMessage("当前关注最多的航班：\n" + rsp["data"][0].dump() + "\n数据来源：https://www.flightradar24.com");
+				e.group.sendMessage("当前关注最多的航班" + fr24(rsp["data"][0]));
 			}
 
 		});
