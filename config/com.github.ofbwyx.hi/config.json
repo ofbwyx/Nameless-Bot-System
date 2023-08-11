@@ -1,0 +1,34 @@
+{
+    "Admin": [
+        0
+    ],
+    "Path": ".\\data\\com.github.ofbwyx.hi\\resources",
+    "Code": "",
+    "Daily": [
+        0,
+        0,
+        3,
+        0
+    ],
+    "SignLeast": 100,
+    "SignMost": 150,
+    "Jackpot": 500,
+    "DrawT": 50,
+    "DrawOdds": 20,
+    "BitCD": 600,
+    "ChangeH": 2000,
+    "WeatherKey": "S3gX-sEKMwdhPvsXm",
+    "NudgeG": [
+        -1
+    ],
+    "NudgeR": [
+        "呀！",
+        "憋戳啦 >__<",
+        "来，让我康康"
+    ],
+    "Fr24Bot": 0,
+    "Fr24G": [
+        0,
+        0
+    ]
+}
