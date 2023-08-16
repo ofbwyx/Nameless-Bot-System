@@ -88,6 +88,9 @@ json python(string url) {
 	f_write << url;
 	f_write.close();
 	string tmp = "python " + (string)set["Path"] + "\\python.py";
+	//string tmp = "python " + (string)set["Path"] + "\\test.py \"" + url + '"';
+	//string tmp = "python " + (string)set["Path"] + "\\test.py " + url;
+	//Logger::logger.warning(tmp);
 	system(tmp.c_str());
 	f_read.open("Temp.ofbwyx");
 	json rsp = "";
@@ -324,10 +327,12 @@ namespace Command {
 			if (a.size()==0) g.sendMessage("请问你要丢什么捏，一起发出来哦。");
 			else {
 				drift["Cnt"] = drift["Cnt"] + 1;
-				drift["Drift"][(int)drift["Cnt"]]["Text"] = a.toMiraiCode();
+				//drift["Drift"][(int)drift["Cnt"]]["Text"] = a.toMiraiCode();
+				drift["Drift"][(int)drift["Cnt"]]["Text"] = a.toJson();
 				drift["Drift"][(int)drift["Cnt"]]["Sender"] = m.nickOrNameCard();
 				drift["Drift"][(int)drift["Cnt"]]["SenderID"] = m.id();
 				drift["Drift"][(int)drift["Cnt"]]["Time"] = time(0);
+				//Logger::logger.warning(a);
 				g.sendMessage(m.nickOrNameCard() + " 投掷成功！\n目前漂流瓶总数：" + to_string(drift["Cnt"]));
 				SaveFile(1); // 只保存漂流瓶部分
 			}
@@ -346,13 +351,15 @@ namespace Command {
 			std::string id = to_string(m.id());
 			int rd = myrand() % drift["Cnt"] + 1;
 			json tmp = drift["Drift"][rd];
-			MessageChain msg = msg.deserializationFromMiraiCode(tmp["Text"]); // 解析漂流瓶
+			//MessageChain msg = msg.deserializationFromMiraiCode(tmp["Text"]); // 解析漂流瓶
+			MessageChain msg = msg.deserializationFromMessageJson(tmp["Text"]);
 
 			// 构造转发信息
 			auto style = ForwardedMessageDisplayStrategy();
 			style.title = "漂流瓶", style.brief = "漂流瓶", style.summary = "点击打开漂流瓶";
 			style.preview.clear(),style.preview.push_back("漂流瓶 id：" + to_string(rd));
 			ForwardedMessage({ ForwardedNode((QQID)tmp["SenderID"],(std::string)tmp["Sender"],msg,(int)tmp["Time"]) },style).sendTo(&g);
+			//g.sendMessage(msg);
 		}
 		dpick() = default;
 	};
